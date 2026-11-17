@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ 'Edit post' if post.id else 'New post' }}</h1>
+{% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+<form method="post" enctype="multipart/form-data" class="form" id="editor" data-preview="{{ url_for('admin.preview') }}" data-csrf="{{ csrf_token() }}">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label>Title<input name="title" value="{{ d.title }}" maxlength="200" required></label>
+  <label>Summary<input name="summary" value="{{ d.summary }}" maxlength="400"></label>
+  <div class="row">
+    <label>Type<select name="type">{% for s, l in post_types.items() %}<option value="{{ s }}" {{ 'selected' if d.type == s }}>{{ l }}</option>{% endfor %}</select></label>
+    <label>Status<select name="status"><option value="draft" {{ 'selected' if d.status == 'draft' }}>Draft (hidden)</option><option value="published" {{ 'selected' if d.status == 'published' }}>Published</option></select></label>
+  </div>
+  <label>Tags (separate with commas)<input name="tags" value="{{ d.tags }}"></label>
+  <div class="split">
+    <label>Body (Markdown)<textarea name="body" id="body" rows="22">{{ d.body }}</textarea></label>
+    <div><span class="lbl">Live preview</span><div class="article preview" id="preview"></div></div>
+  </div>
+  <div class="row">
+    <label>Cover image (optional)<input type="file" name="cover" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+    <label>PDF download (optional)<input type="file" name="pdf" accept="application/pdf"></label>
+  </div>
+  {% if post.cover_image or post.pdf_file %}<p><small>Files you already uploaded stay unless you choose new ones.</small></p>{% endif %}
+  <label class="check"><input type="checkbox" name="featured" {{ 'checked' if d.featured }}> Featured on the home page</label>
+  <label class="check"><input type="checkbox" name="sanitized" {{ 'checked' if d.sanitized }}> Sanitized / authorized report</label>
+  <div class="acts"><button class="btn">Save</button><a class="btn ghost" href="{{ url_for('admin.dashboard') }}">Cancel</a></div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

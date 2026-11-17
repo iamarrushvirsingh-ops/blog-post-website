@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | {{ site_name }}{% endblock %}
+{% block content %}
+<section class="post-head">
+  <img class="avatar big" src="{{ thumb(post) }}" alt="">
+  <div class="info">
+    <h1 class="page-title">{{ post.title }}</h1>
+    <p><b>Summary :</b> {{ post.summary }}</p>
+    <p><b>Type :</b> <a href="{{ url_for('public.section', slug=post.type) }}">{{ post_types[post.type] }}</a>
+      {% if post.sanitized %}<span class="badge">Sanitized / authorized</span>{% endif %}</p>
+    <p><b>Published :</b> {{ post.created_at.strftime('%d %b %Y') }} &nbsp; <b>Read :</b> {{ minutes }} min</p>
+    {% if post.pdf_file %}<p><a class="btn" href="{{ url_for('public.uploaded', name=post.pdf_file) }}" download>Download PDF</a></p>{% endif %}
+    <div class="tags">{% for t in post.tags %}<a class="tag" href="{{ url_for('public.tag', name=t.name) }}">#{{ t.name }}</a>{% endfor %}</div>
+  </div>
+</section>
+<div class="layout">
+  <div class="article">{{ html|safe }}</div>
+  {% if toc %}<aside class="toc"><h4>Sections</h4>
+    {% for h in toc %}<a href="#{{ h.id }}"><i>[ ]</i> {{ h.name }}</a>{% endfor %}
+  </aside>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/toc.js') }}"></script>
+{% endblock %}
