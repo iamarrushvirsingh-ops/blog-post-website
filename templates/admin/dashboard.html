@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<div class="bar">
+  <h1 class="page-title">Dashboard</h1>
+  <div class="acts">
+    <a class="btn" href="{{ url_for('admin.editor') }}">New post</a>
+    <form method="post" action="{{ url_for('admin.logout') }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost">Log out</button></form>
+  </div>
+</div>
+<div class="tablewrap"><table class="posts">
+  <tr><th>Title</th><th>Type</th><th>Status</th><th>Views</th><th>Actions</th></tr>
+  {% for p in posts %}<tr>
+    <td><a href="{{ url_for('public.post', slug=p.slug) }}">{{ p.title }}</a></td>
+    <td>{{ post_types.get(p.type, p.type) }}</td>
+    <td>{{ p.status }}{% if p.featured %} &#9733;{% endif %}</td>
+    <td>{{ p.views }}</td>
+    <td class="acts"><a href="{{ url_for('admin.editor', id=p.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('admin.toggle', id=p.id) }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="link">{{ 'Unpublish' if p.status == 'published' else 'Publish' }}</button></form>
+      <form method="post" action="{{ url_for('admin.delete', id=p.id) }}" class="inline" data-confirm="Delete this post permanently?"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="link danger">Delete</button></form></td>
+  </tr>{% else %}<tr><td colspan="5">No posts yet.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

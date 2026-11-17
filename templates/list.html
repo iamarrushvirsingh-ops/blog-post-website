@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }} | {{ site_name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ heading }}</h1>
+{% if search %}<form class="search" action="{{ url_for('public.search') }}" role="search">
+  <input name="q" value="{{ q }}" maxlength="80" placeholder="Search posts..." aria-label="Search posts"><button class="btn">Search</button></form>{% endif %}
+<div class="grid">
+  {% for p in posts %}{% include "_card.html" %}{% else %}<p>{{ 'Nothing found.' if q else 'Nothing here yet.' }}</p>{% endfor %}
+</div>
+{% endblock %}

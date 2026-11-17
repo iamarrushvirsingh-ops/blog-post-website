@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>{{ tagline }}</h1>
+  <div class="btns">{% for slug, label in post_types.items() %}<a href="{{ url_for('public.section', slug=slug) }}">{{ label }}</a>{% endfor %}</div>
+</section>
+{% for title, posts in [("Featured", featured), ("Most popular", popular), ("Latest", latest)] %}
+<h2 class="sec">{{ title }}</h2>
+<div class="grid">
+  {% for p in posts %}{% include "_card.html" %}{% else %}<p>No posts yet.</p>{% endfor %}
+</div>
+{% endfor %}
+{% endblock %}
