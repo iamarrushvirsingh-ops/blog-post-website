@@ -82,6 +82,9 @@ Notes:
 | `/post/<slug>` | One post. Counts a view (not for the admin). Drafts return 404 unless the admin is logged in. |
 | `/avatar/<slug>.svg` | Generated pixel avatar for a post |
 | `/uploads/<name>` | Serves uploaded images and PDFs |
+| `/about`, `/contact` | Static pages; email and social links come from `.env` |
+| `/feed.xml` | RSS feed of the 20 newest posts |
+| `/sitemap.xml`, `/robots.txt` | For search engines |
 
 **Admin** (all under `/<ADMIN_PATH>`)
 
@@ -129,40 +132,46 @@ Notes:
 - **Post page:** large avatar, summary and info lines, code boxes with a colored side stripe, a sticky "Sections" card that marks the current heading with `[x]`
 - **Accessibility:** keyboard focus outlines, reduced-motion support, labelled form fields
 
-## 9. Known limitations
+## 9. Deployment design
 
-1. **Login lockout is stored in memory.** It resets when the server restarts and is not shared between several server processes. Behind a proxy, all visitors may look like one IP address.
-2. **Storage can be wiped on some hosts.** SQLite and `uploads/` live on the server's disk. Hosts without permanent storage will lose them on restart.
+- **Server:** gunicorn (`Procfile`, `gunicorn.conf.py`). One worker with four threads, so the in-memory login lockout counter lives in one place.
+- **Proxy fix:** hosts put a proxy in front of the app. With `PROXY_COUNT` set (default 1 when `PRODUCTION=1`), the app reads the visitor's real IP address and the HTTPS setting from the proxy, so lockouts and secure links work correctly.
+- **Permanent storage:** `DATA_DIR` moves the database and uploads onto a mounted permanent disk. Left empty, they stay in the project folder.
+- **Backups:** `backup.py` makes a safe dated zip of the database and uploads.
+- **Error pages:** themed pages for 400, 404, 413 and 500 so visitors never see raw framework errors.
+- **SEO and sharing:** page descriptions, Open Graph tags (cover image used when present), sitemap, robots.txt, favicon, RSS.
+
+## 10. Known limitations
+
+1. **Login lockout is stored in memory.** It resets on restart and only works correctly with a single worker process (the default config).
+2. **Storage depends on the host.** The database and uploads need a permanent disk (`DATA_DIR`). Hosts without one will lose them.
 3. **No database migrations.** Tables are created automatically, but changing a table later needs a migration tool or manual changes.
 4. **View counts are simple.** Each page load counts, including refreshes and bots.
 5. **No pagination.** Listing pages show every matching post.
 6. **Single admin and no password-reset page.** Re-run `create_admin.py` to change the password.
 7. **Images in post bodies are links only.** There is no upload-and-insert button.
-8. **The built-in server is not for production.** A production server (for example gunicorn) is needed.
-9. **External fonts.** Google Fonts are loaded from Google's servers.
+8. **External fonts.** Google Fonts are loaded from Google's servers.
+9. **No contact form.** The Contact page shows an email link instead, to avoid spam and abuse.
 10. **Not yet reviewed in all browsers** or by an independent security tester.
 
-## 10. Roadmap
+## 11. Roadmap
 
-**Stage 5 (before deploy)**
-- About and Contact pages
-- RSS feed
-- Deployment files and a production server
-- Choose a host with permanent storage (or move uploads and database off the server)
-- Backups and HTTPS
+**Before launch (your part)**
+- Choose a host with a permanent disk, then set the environment variables and run `create_admin.py` there
+- Edit `templates/about.html` with your own introduction
+- Test in real browsers and on a phone
 
 **Later ideas**
 - Light mode toggle
 - Pagination
 - Insert-image button in the editor
-- Better lockout (shared storage, correct client IP behind a proxy)
+- Shared storage for login lockout if more than one worker is needed
 - Database migrations
 - Optional analytics, newsletter or comments
 - Multiple authors with roles
 
-## 11. Open questions
+## 12. Open questions
 
-- Which host? It must support Flask and keep files permanently, and be reachable and affordable from India.
-- Keep SQLite plus a persistent disk, or move to a hosted database and external file storage?
+- Which host? It must run Flask, offer a permanent disk, and be reachable and affordable from India.
 - Custom domain name?
 - Final site name (LATRO is a placeholder; change `SITE_NAME` in `config.py`).
