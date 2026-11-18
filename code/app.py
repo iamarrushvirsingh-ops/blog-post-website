@@ -2,7 +2,8 @@ import os
 import hmac
 import secrets
 from datetime import datetime
-from flask import Flask, session, request, abort, url_for
+from flask import Flask, session, request, abort, url_for, render_template
+from werkzeug.middleware.proxy_fix import ProxyFix
 import config
 from blog.models import db
 from blog.public_routes import public
@@ -18,6 +19,9 @@ def create_app():
     app.config.from_object(config)
     if config.PRODUCTION and config.SECRET_KEY == "dev-only-change-me":
         raise RuntimeError("Set a real SECRET_KEY in your .env before going live.")
+    if config.PROXY_COUNT:  # trust the host's middleman so visitors' real addresses and https are seen
+        n = config.PROXY_COUNT
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=n, x_proto=n, x_host=n)
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(config.UPLOAD_FOLDER, exist_ok=True)
     db.init_app(app)
@@ -41,6 +45,8 @@ def create_app():
     def site_info():
         return dict(site_name=config.SITE_NAME, tagline=config.SITE_TAGLINE,
                     post_types=config.POST_TYPES, year=datetime.now().year,
+                    contact_email=config.CONTACT_EMAIL, github_url=config.GITHUB_URL,
+                    linkedin_url=config.LINKEDIN_URL,
                     csrf_token=csrf_token, thumb=thumb)
 
     @app.before_request
@@ -60,6 +66,14 @@ def create_app():
         if request.path.startswith(admin_prefix):
             r.headers["Cache-Control"] = "no-store"
         return r
+
+    def error_page(e):
+        code = getattr(e, "code", 500)
+        msgs = {400: "Bad request", 404: "Page not found", 413: "That file is too large",
+                500: "Something went wrong on our side"}
+        return render_template("error.html", code=code, msg=msgs.get(code, "Error")), code
+    for code in (400, 404, 413, 500):
+        app.register_error_handler(code, error_page)
     return app
 
 

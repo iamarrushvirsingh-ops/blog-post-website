@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Contact | {{ site_name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">Contact</h1>
+<div class="article about">
+  <h2>Email</h2>
+  <p>{% if contact_email %}<a href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% else %}Not set yet.{% endif %}</p>
+  <h2>Elsewhere</h2>
+  <p>{% if github_url %}<a href="{{ github_url }}" rel="noopener">GitHub</a>{% endif %}{% if github_url and linkedin_url %} &nbsp;&middot;&nbsp; {% endif %}{% if linkedin_url %}<a href="{{ linkedin_url }}" rel="noopener">LinkedIn</a>{% endif %}{% if not github_url and not linkedin_url %}Not set yet.{% endif %}</p>
+  <h2>Found a security problem on this site?</h2>
+  <p>Please email me privately before sharing details publicly.</p>
+</div>
+{% endblock %}

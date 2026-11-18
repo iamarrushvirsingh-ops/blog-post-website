@@ -4,7 +4,7 @@ A personal cybersecurity blog with a built-in admin panel. One author, one login
 
 Publish weekly AI-and-security updates, reports, articles, projects, research papers and monthly tech recaps from a browser, and let visitors browse them by section, tag, search or archive.
 
-> **Status:** Stages 1 to 4 are complete (public site, admin panel, search and uploads, security hardening). Stage 5 (About/Contact pages, RSS feed, deployment files) is still to do. See [DESIGN.md](DESIGN.md) for the full picture.
+> **Status:** All five stages are built (public site, admin panel, search and uploads, security hardening, About/Contact, RSS, deployment files). What remains is choosing a host and going live. See [DESIGN.md](DESIGN.md) for the full picture.
 
 ## Features
 
@@ -14,6 +14,7 @@ Publish weekly AI-and-security updates, reports, articles, projects, research pa
 - Tag pages, a full archive, and search (title, summary, body, tags)
 - Post pages with reading time, a "Sections" side card that follows your scroll, and an optional PDF download
 - A "Sanitized / authorized" badge for reports
+- About and Contact pages, an RSS feed (`/feed.xml`), a sitemap, themed error pages and link-preview tags
 - Dark cyber theme with an animated starfield and a periodic logo glitch
 
 **For the author (you)**
@@ -64,6 +65,9 @@ Private settings live in `.env` (never commit this file):
 | `SECRET_KEY` | Long random string used to sign login sessions. Required when `PRODUCTION=1`. |
 | `ADMIN_PATH` | The secret word in your login address, e.g. `blue-falcon` gives `/blue-falcon/login`. |
 | `PRODUCTION` | `0` on your computer, `1` on the live server (turns on secure cookies and extra checks). |
+| `DATA_DIR` | Folder on a **permanent disk** that will hold the database and uploads. Leave empty on your computer. |
+| `PROXY_COUNT` | How many middlemen (proxies) sit in front of the site. Empty means 0 locally and 1 when `PRODUCTION=1`. |
+| `CONTACT_EMAIL`, `GITHUB_URL`, `LINKEDIN_URL` | Shown on the Contact and About pages. Leave empty to hide. |
 
 Public settings live in `config.py`: the site name (`SITE_NAME`), the tagline, and the list of post types.
 
@@ -94,6 +98,9 @@ latro/
 ├── config.py            Settings and the list of post types
 ├── create_admin.py      Creates or resets the admin account
 ├── seed.py              Adds sample posts (only if the database is empty)
+├── backup.py            Saves a dated .zip of the database and uploads
+├── Procfile             Start command for hosts (gunicorn app:app)
+├── gunicorn.conf.py     Production server settings
 ├── requirements.txt
 ├── .env.example         Template for your private .env
 ├── blog/
@@ -104,8 +111,9 @@ latro/
 │   └── utils.py         Slugs, reading time, Markdown cleaning, avatars
 ├── templates/           Page layouts (admin pages in templates/admin/)
 ├── static/              css/style.css and js/ (background, menu, contents card, admin, glitch)
-├── instance/            Created automatically; holds blog.db
-└── uploads/             Created automatically; holds cover images and PDFs
+├── instance/            Created automatically; holds blog.db (unless DATA_DIR is set)
+├── uploads/             Created automatically; holds cover images and PDFs (unless DATA_DIR is set)
+└── backups/             Created by backup.py
 ```
 
 ## Security summary
@@ -121,17 +129,19 @@ latro/
 
 Found a problem? Please open an issue or contact the author privately before posting details publicly.
 
-## Before you deploy
+## Deploying
 
-- Delete the sample posts and write your own
-- Set a real `.env` (`SECRET_KEY`, `ADMIN_PATH`, `PRODUCTION=1`) and a strong admin password
-- Serve it with a production server and HTTPS (the built-in `python app.py` server is for your own computer only)
-- Choose a host with **permanent storage**, or uploads and the database may be erased on restart
-- Back up `instance/blog.db` and `uploads/` regularly
+1. Pick a host that runs Python and offers a **permanent disk**. Without one, the database and uploads can be erased on restart.
+2. Set the start command to `gunicorn app:app` (the included `Procfile` and `gunicorn.conf.py` already say this).
+3. Set these environment variables on the host: `SECRET_KEY` (long random), `ADMIN_PATH` (your secret word), `PRODUCTION=1`, and `DATA_DIR` (a folder on the permanent disk). Optionally `CONTACT_EMAIL`, `GITHUB_URL`, `LINKEDIN_URL`.
+4. Make sure the site is served over **HTTPS** (most hosts do this for free). In live mode the login cookie only works over HTTPS.
+5. On the host, run `python create_admin.py` once to create your login. Do **not** run `seed.py`.
+6. Edit the intro text in `templates/about.html`, then log in and write your first post.
+7. Test: log in, write a post, upload a cover image and a PDF, publish, check that drafts stay hidden, and look at the site on your phone.
 
 ## Backups
 
-Your whole blog is two things: `instance/blog.db` (posts, tags, account) and the `uploads/` folder. Copy both somewhere safe on a schedule.
+Your whole blog is two things: the database (`blog.db`) and the `uploads/` folder. Run `python backup.py` to save both into one dated zip in `backups/`, then copy that zip somewhere safe on a schedule. Try restoring one at least once.
 
 ## Ethics
 

@@ -4,8 +4,7 @@
   const x = c.getContext('2d');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const LINK = 130;
-  const SPEED = 0.95  // movement speed: 0.4 was the old feel, 0.75 is faster, raise it for more
-  let w, h, pts = [];
+  const SPEED = 0.75;  // movement speed: raise for faster let w, h, pts = [];
   function size() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
     w = innerWidth; h = innerHeight;

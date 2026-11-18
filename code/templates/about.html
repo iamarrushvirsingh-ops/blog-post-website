@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}About | {{ site_name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">About</h1>
+<div class="article about">
+  {# EDIT THIS TEXT: write a short introduction about yourself #}
+  <p>{{ site_name }} is where I publish weekly AI-and-security updates, reports from CTFs, labs and authorized tests, articles, projects and research notes.</p>
+  <h2>Ethics</h2>
+  <p>Every report here covers a CTF or practice platform, my own lab, or a target I had written permission to publish about. Names, addresses and sensitive details are removed or anonymized.</p>
+  <h2>Find me</h2>
+  <p>{% if github_url %}<a href="{{ github_url }}" rel="noopener">GitHub</a>{% endif %}{% if github_url and linkedin_url %} &nbsp;&middot;&nbsp; {% endif %}{% if linkedin_url %}<a href="{{ linkedin_url }}" rel="noopener">LinkedIn</a>{% endif %}{% if not github_url and not linkedin_url %}<a href="{{ url_for('public.contact') }}">Contact page</a>{% endif %}</p>
+</div>
+{% endblock %}
